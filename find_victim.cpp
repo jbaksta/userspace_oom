@@ -149,6 +149,7 @@ void sigkill_victim(pid_t pid)
 	uid_t victim_uid;
 	std::string cgroups;
 	char* log_msg;
+	char pid_state;
 	victim_uid = get_uid(pid);
 	get_cgroup_from_pid(pid, cgroups);
 	asprintf(&log_msg, "killing UID:%u PID %d; cgroups: %s\n", victim_uid, pid, 
@@ -157,6 +158,7 @@ void sigkill_victim(pid_t pid)
 	slog(LOG_ALERT, log_msg);
 	free(log_msg);
 
+	get_pid_state(pid,&pid_state);
 	if (pid_state == 'D' || pid_state == 'Z') return;
 	kill(pid, SIGKILL);
 
