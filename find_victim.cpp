@@ -152,14 +152,18 @@ void sigkill_victim(pid_t pid)
 	char pid_state;
 	victim_uid = get_uid(pid);
 	get_cgroup_from_pid(pid, cgroups);
+
+	get_pid_state(pid,&pid_state);
+	// Ignore D and Z state processes at least here. Can't kill Z, they're already dead.
+	if (pid_state == 'D' || pid_state == 'Z') return;
+
 	asprintf(&log_msg, "killing UID:%u PID %d; cgroups: %s\n", victim_uid, pid, 
 			 cgroups.c_str()
 			);
 	slog(LOG_ALERT, log_msg);
 	free(log_msg);
 
-	get_pid_state(pid,&pid_state);
-	if (pid_state == 'D' || pid_state == 'Z') return;
+
 	kill(pid, SIGKILL);
 
 }
