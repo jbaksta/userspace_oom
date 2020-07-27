@@ -125,6 +125,25 @@ void get_cgroup_from_pid(pid_t pid, std::string& result)
 	free(path);
 }
 
+// Relies on procfs, but Linux.
+int get_pid_state(pid_t pid, char* state)
+{
+        FILE* pid_fh;
+        char* procfs_pid_stat;
+        pid_t ppid;
+
+        // File location on procfs
+        asprintf(&procfs_pid_stat,"/proc/%d/stat",pid)
+
+        // open, read state, close --> get 3rd field and 4th, but probably won't need it ever.
+        pid_fh = fopen(procfs_pid_stat,'r');
+        fscanf(pid_fh, "%*s %*s %c %d",state,&ppid);
+        fclose(pid_fh);
+
+        return 0; // in case we need return error or something else later.
+
+}
+
 void sigkill_victim(pid_t pid)
 {
 	uid_t victim_uid;
@@ -137,6 +156,8 @@ void sigkill_victim(pid_t pid)
 			);
 	slog(LOG_ALERT, log_msg);
 	free(log_msg);
+
+	if (pid_state == 'D' || pid_state == 'Z') return;
 	kill(pid, SIGKILL);
 
 }
